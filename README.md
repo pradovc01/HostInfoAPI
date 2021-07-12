@@ -8,7 +8,7 @@ Commands to create an image, run the container and upload the image to the cloud
 
      docker build -t- pradovc01/hostnameinfoapi
 2. docker images : list docker images : you will see all images available in your local repository
-3. docker run -p <localPort>:<port> <dockerID>/<imagename> : You can run the image
+3. docker run -p \<localPort\>:\<port\> \<dockerID\>/\<imagename\> : You can run the image
 
     docker run -p 8080:80 pradovc01/hostnameinfoapi:veronica.prado
 4. docker push \<dockerId\>/\<imagename\>:\<tag\> :  You can upload the image to repository (private/public)
