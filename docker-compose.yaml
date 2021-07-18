@@ -1,6 +1,7 @@
 version: "3"
 services:
     apprest:
+        image: docker.jala.pro/docker-taining/aspnetapp:compose
         build:
             context: .
             dockerfile: multistage.Dockerfile
@@ -11,9 +12,25 @@ services:
             - 8085:80
         networks: 
             - hostInfoNet 
+        depends_on: 
+            - jenkins
         volumes:
             - app_vol:/app
-
+        
+    jenkins:
+        image: jenkins/jenkins:lts-jdk11
+        container_name: jekinsApp        
+        restart: always
+        networks: 
+            - hostInfoNet                
+        ports: 
+            - 8080:8080
+            - 50000:50000
+        depends_on: 
+            - sonarqube
+        volumes:            
+            - jenkins_data:/var/jenkins_home            
+        
     sonarqube:
         image: sonarqube:8.9.0-community
         restart: always
@@ -32,19 +49,25 @@ services:
             - sonarqube_data:/opt/sonarqube/data
             - sonarqube_extensions:/opt/sonarqube/sonarqube_extensions
             - sonarqube_logs:/opt/sonarqube/logs
-
-    jenkins:
-        image: jenkins/jenkins:lts-jdk11
-        container_name: jekinsApp        
+    
+    database:
+        image: postgres:12.1-alpine
+        container_name: postgredbApp
         restart: always
+        environment: 
+            POSTGRES_USER: sonar
+            POSTGRES_PASSWORD: sonaradmin
+            POSTGRES_DB: sonardb
+        depends_on: 
+            - nexus
+        ports:
+            - 5432:5432
         networks: 
-            - hostInfoNet                
-        ports: 
-            - 8080:8080
-            - 50000:50000
-        volumes:            
-            - jenkins_data:/var/jenkins_home            
-
+            - hostInfoNet
+        volumes: 
+            - database_postgresql:/var/lib/postgresql
+            - database_postgresql_data:/var/lib/postgresql/data
+        
     nexus:
         image: sonatype/nexus3
         container_name: nexusApp
@@ -57,22 +80,7 @@ services:
             - 8083:8083            
         volumes:
             - nexus_data:/nexus-data
-
-    database:
-        image: postgres:12.1-alpine
-        container_name: postgredbApp
-        restart: always
-        environment: 
-            POSTGRES_USER: sonar
-            POSTGRES_PASSWORD: sonaradmin
-            POSTGRES_DB: sonardb
-        ports:
-            - 5432:5432
-        networks: 
-            - hostInfoNet
-        volumes: 
-            - database_postgresql:/var/lib/postgresql
-            - database_postgresql_data:/var/lib/postgresql/data
+        
 volumes:
     app_vol:
     sonarqube_data:
